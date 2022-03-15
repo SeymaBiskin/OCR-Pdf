@@ -1,0 +1,21 @@
+{
+   "files": {
+       "fileDetails": [
+           {
+               "name": "Page_1.pdf",
+               "top": 145, 
+               "bottom":220, 
+               "right":0, 
+               "left":0
+           },
+           {
+            "name": "Page_2.pdf",
+            "top": 320, 
+            "bottom":160, 
+            "right":0, 
+            "left":0
+
+           }
+       ]
+   }
+}
