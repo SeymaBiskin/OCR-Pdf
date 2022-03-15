@@ -1,19 +1,28 @@
 {
    "files": {
-       "fileDetails": [
+       "first.pdf": [
            {
                "name": "Page_1.pdf",
                "top": 145, 
                "bottom":220, 
                "right":0, 
-               "left":0
+               "left":0,
+               "keysToRemove": 
+                            [   "Calibrated item", "Remarks",
+                                "Calibration", "Re-calibration due", "Certificate"],
+                "keysCoordinate": {"upper": 915, "lower": 430},
+                "valuesCoordinate": {"upper": 3087, "lower": 1169}
            },
            {
             "name": "Page_2.pdf",
-            "top": 320, 
-            "bottom":160, 
+            "top": 400, 
+            "bottom":200, 
             "right":0, 
-            "left":0
+            "left":0,
+            "keysToRemove": 
+                            ["pressure"],
+            "keysCoordinate": {"upper": 1076, "lower": 1074},
+            "valuesCoordinate": {"upper": 1123, "lower": 1106}
 
            }
        ]

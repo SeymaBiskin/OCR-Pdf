@@ -9,7 +9,10 @@ from pytesseract import Output
 from pdf_to_image import convert_pdf_to_image
 from seperate_pdf_pages import split_pdf
 from crop_pdf import crop_pdf
-from utilities import read_json
+from utilities import read_json, write_json
+from combine_text_of_image_data import drop_spaces_from_text
+from extract_key_value_pairs import extract_key_value_pair
+
 
 poppler_path = "C:\\Program Files\\poppler-0.68.0\\bin"
 
@@ -17,87 +20,39 @@ tesseract_cmd_path = "C:\\Users\\SEYKES\\AppData\\Local\\Programs\\Tesseract-OCR
 pytesseract.pytesseract.tesseract_cmd = tesseract_cmd_path
 
 path = os.getcwd()
-path_of_image = os.path.join(path, "data\\first.pdf")
+data = read_json("config\pdf.json")
+
+for file in data["files"]:
+    path_of_pdf = os.path.join(path, f"data\\{file}")
+    split_pdf(path_of_pdf)
+    file_details = data["files"][file]
 
 
-# split_pdf(path_of_image)
 
-# data = read_json("config\pdf.json")
+for details in file_details:
 
-# file_details = data["files"]["fileDetails"]
+    output_file_name = f"temp\\cropped_{details['name']}"
+    input_file_name = f"temp\\{details['name']}"
+    crop_pdf(input_file_name, output_file_name,
+             top=details["top"], bottom=details["bottom"], right=details["right"], left=details["left"])
 
-# for file in file_details:
-#     output_file_name = f"temp\\cropped_{file['name']}"
-#     input_file_name = f"temp\\{file['name']}"
-#     crop_pdf(input_file_name, output_file_name,
-#              top=file["top"], bottom=file["bottom"], right=file["right"], left=file["left"])
+    cropped_image_path = convert_pdf_to_image(output_file_name)
 
-# cropped_pdf_path = os.path.join(path, "temp\\cropped_Page_1.pdf")
-# convert_pdf_to_image(cropped_pdf_path)
+    im = cv2.imread(cropped_image_path)
+    d = pytesseract.image_to_data(im, output_type=Output.DICT)
 
-im = cv2.imread("temp/Page_1.png")
-d = pytesseract.image_to_data(im, output_type=Output.DICT)
-# print(d.keys())
-data_word = {key: value for key, value in d.items() if key ==
-             "top" or key == "text"}
-# print(data_word)
+    text_wit_left_coordinate_data = list(zip(d["left"], d["text"]))
+    keys, values = extract_key_value_pair(text_wit_left_coordinate_data, details["keysCoordinate"], details["valuesCoordinate"])
 
-zipped = list(zip(d["left"], d["text"], d["word_num"]))
+    keys_to_check = drop_spaces_from_text(keys)
+    values_to_check = drop_spaces_from_text(values)
 
-# print(zipped)
+    items_to_be_removed = details["keysToRemove"]
+    for item in items_to_be_removed:
+        keys_to_check.remove(item)
+    
+    formatted_key_value_pairs = list(zip(keys_to_check, values_to_check))
 
-# filter(zipped)
-keys = []
-values = []
-for (left, text, word_number) in zipped:
-    if left >= 430 and left <= 915:
-        keys.append(text)
-    elif left >= 1169 and left <= 3087:
-        values.append(text)
-    else:
-        continue
-
-# # print(keys)
-# print(values)
-
-keys_to_check = []
-combined_text = []
-
-for key in keys:
-    if key != "":
-        combined_text.append(key)
-    elif len(combined_text) != 0:
-        concatenated_text = " ".join(combined_text)
-        keys_to_check.append(concatenated_text)
-        combined_text.clear()
-    else:
-        continue
-if len(combined_text) != 0:
-    concatenated_text = " ".join(combined_text)
-    keys_to_check.append(concatenated_text)
-
-values_to_check = []
-combined_text = []
-
-for value in values:
-    if value != "":
-        combined_text.append(value)
-    elif len(combined_text) != 0:
-        concatenated_text = " ".join(combined_text)
-        values_to_check.append(concatenated_text)
-        combined_text.clear()
-    else:
-        continue
-if len(combined_text) != 0:
-    concatenated_text = " ".join(combined_text)
-    values_to_check.append(concatenated_text)
-
-items_to_be_removed = ["Calibrated item", "Remarks",
-                       "Calibration", "Re-calibration due", "Certificate"]
-for item in items_to_be_removed:
-    keys_to_check.remove(item)
-
-formatted_key_value_pairs = list(zip(keys_to_check, values_to_check))
-# print(formatted_key_value_pairs)
-json_output = json.dumps(dict(formatted_key_value_pairs))
-print(json_output)
+    write_json(formatted_key_value_pairs, details['name'])
+  
+ 

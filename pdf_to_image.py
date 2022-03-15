@@ -8,9 +8,11 @@ def convert_pdf_to_image(path):
     
     pages = convert_from_path(path, 500, poppler_path=poppler_path)
 
-    index = 1
+
     for page in pages:
-        image_name = f"temp\Page_{index}.png"
+        name = os.path.splitext(path)[0]
+        image_name = f"{name}.png"
         page.save(image_name, "png")
-        index+=1
+    return image_name
+        
     
